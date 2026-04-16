@@ -21,7 +21,7 @@ spec:
       containers:
         - name: worker
           image: codeboard-worker:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
                 name: codeboard-config

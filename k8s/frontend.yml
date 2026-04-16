@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: codeboard-frontend:latest
-          imagePullPolicy: Never
+          image: codeboard-frontend:v2
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
           resources:
