@@ -3,7 +3,6 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import {
   LayoutDashboard, Github, Code2, Settings, LogOut, Menu, X,
-  Activity
 } from 'lucide-react';
 
 export default function Layout() {

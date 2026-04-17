@@ -17,7 +17,8 @@ export function AuthProvider({ children }) {
         })
         .finally(() => setLoading(false));
     } else {
-      setLoading(false);
+      // Use a microtask to avoid synchronous setState in effect body
+      Promise.resolve().then(() => setLoading(false));
     }
   }, []);
 
