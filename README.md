@@ -193,6 +193,7 @@ kubectl get services -n codeboard
 | `GITHUB_TOKEN` | GitHub PAT (optional, for higher API limits) | — |
 | `FETCH_CRON` | Cron schedule for data fetching | `0 */6 * * *` |
 
+
 ## 📄 License
 
 MIT License
