@@ -5,18 +5,22 @@
 
 name: CI Pipeline
 
+# Trigger workflow on pushes and PRs
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop]   # Run on main + develop branches
   pull_request:
-    branches: [main]
+    branches: [main]            # Run PR checks only for main
 
 jobs:
-  # ---- Backend Tests ----
+  # ============================================
+  # Backend: Linting + Testing with PostgreSQL
+  # ============================================
   backend-test:
     name: Backend - Lint & Test
     runs-on: ubuntu-latest
     
+    # PostgreSQL service container for backend tests
     services:
       postgres:
         image: postgres:16-alpine
@@ -26,6 +30,7 @@ jobs:
           POSTGRES_PASSWORD: test_pass
         ports:
           - 5432:5432
+        # Health check to ensure DB is ready before tests run
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -33,9 +38,11 @@ jobs:
           --health-retries 5
 
     steps:
+      # Pull repository code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Setup Node.js environment with caching
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -43,14 +50,17 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
+      # Install backend dependencies
       - name: Install dependencies
         working-directory: ./backend
         run: npm ci
 
+      # Run linting (if script exists)
       - name: Run linter
         working-directory: ./backend
         run: npm run lint --if-present
 
+      # Execute backend tests
       - name: Run tests
         working-directory: ./backend
         run: npm test --if-present
@@ -62,15 +72,19 @@ jobs:
           DB_PASSWORD: test_pass
           JWT_SECRET: test-secret
 
-  # ---- Frontend Build ----
+  # ============================================
+  # Frontend: Linting + Production Build
+  # ============================================
   frontend-build:
     name: Frontend - Build & Lint
     runs-on: ubuntu-latest
 
     steps:
+      # Pull repository code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Setup Node.js with caching
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -78,18 +92,22 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
+      # Install frontend dependencies
       - name: Install dependencies
         working-directory: ./frontend
         run: npm ci
 
+      # Run lint checks
       - name: Run linter
         working-directory: ./frontend
         run: npm run lint --if-present
 
+      # Build optimized production bundle
       - name: Build production
         working-directory: ./frontend
         run: npm run build
 
+      # Upload build output as artifact
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -97,15 +115,19 @@ jobs:
           path: frontend/dist/
           retention-days: 7
 
-  # ---- Worker Tests ----
+  # ============================================
+  # Worker: Test background services
+  # ============================================
   worker-test:
     name: Worker - Lint & Test
     runs-on: ubuntu-latest
 
     steps:
+      # Pull repository code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Setup Node.js environment
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -113,32 +135,43 @@ jobs:
           cache: 'npm'
           cache-dependency-path: worker/package-lock.json
 
+      # Install worker dependencies
       - name: Install dependencies
         working-directory: ./worker
         run: npm ci
 
+      # Run worker tests
       - name: Run tests
         working-directory: ./worker
         run: npm test --if-present
 
-  # ---- Docker Build Test ----
+  # ============================================
+  # Docker: Build all service images
+  # ============================================
   docker-build:
     name: Docker - Build All Images
     runs-on: ubuntu-latest
+
+    # Ensure all tests pass before building images
     needs: [backend-test, frontend-build, worker-test]
 
     steps:
+      # Pull repository code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Build backend Docker image
       - name: Build Backend Image
         run: docker build -t codeboard-backend:test ./backend
 
+      # Build worker Docker image
       - name: Build Worker Image
         run: docker build -t codeboard-worker:test ./worker
 
+      # Build frontend Docker image
       - name: Build Frontend Image
         run: docker build -t codeboard-frontend:test ./frontend
 
+      # Verify images are created successfully
       - name: Verify images
         run: docker images | grep codeboard
