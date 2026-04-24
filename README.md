@@ -175,6 +175,10 @@ kubectl get services -n codeboard
 - 📱 **Responsive** — Works on desktop and mobile
 
 ## 🔐 Environment Variables
+##### 🚀 Contributions
+
+- **Sahil** – Implemented CD Pipeline using GitHub Actions  
+  (Docker build & push for backend, worker, frontend)
 
 ### Backend (.env)
 | Variable | Description | Default |
